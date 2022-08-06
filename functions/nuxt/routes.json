@@ -1,0 +1,16 @@
+[
+  {
+    "name": "inspire",
+    "path": "/inspire",
+    "component": "/Users/jk/Documents/sitiosweb/NODE/planetapreescolar-ssr/pages/inspire.vue",
+    "chunkName": "pages/inspire",
+    "_name": "_75e75e88"
+  },
+  {
+    "name": "index",
+    "path": "/",
+    "component": "/Users/jk/Documents/sitiosweb/NODE/planetapreescolar-ssr/pages/index.vue",
+    "chunkName": "pages/index",
+    "_name": "_4d463400"
+  }
+]
