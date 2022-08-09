@@ -1,8 +1,8 @@
 module.exports={
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: '%s - planetapreescolar-ssr',
-    title: 'planetapreescolar-ssr',
+    titleTemplate: '%s - Planetapreescolar',
+    title: 'Planetapreescolar',
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -58,7 +58,9 @@ module.exports={
       }
     ]
   ],
-
+  env: {
+    baseUrl: process.env.BASE_URL || 'https://educadorafirebase.web.app'
+  },
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
@@ -71,14 +73,13 @@ module.exports={
       lang: 'en'
     }
   },
-
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
-      dark: true,
+      light: true,
       themes: {
-        dark: {
+        light: {
           primary: '#ad227d',
           melon:'#ff6c5c',
           verylight:'#ebe4eb',
@@ -96,7 +97,6 @@ module.exports={
       }
     }
   },
-
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
     buildModules: [
@@ -104,6 +104,9 @@ module.exports={
       '@nuxtjs/vuetify',
       '@nuxtjs/firebase'
     ],
-
+  },
+  serverMiddleware: [],
+  router:{
+    middlewere:[]
   }
 }

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: functions/index.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: functions/index.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const functions = require("firebase-functions")
+const express = require("express")
+const cors = require('cors');
+const conekta=require('conekta');
+const admin = require('firebase-admin');
+const moment = require('moment');
+const { Nuxt } = require('nuxt-start')
+const nuxtConfig = require('./nuxt.config.js')
+const config = {
+  ...nuxtConfig,
+  dev: false,
+  debug: false,
+  buildDir: 'nuxt', 
+}
+const nuxt = new Nuxt(config)
+
+/* Express */
+const app = express()
+app.use(express.json())
+app.use(cors())
+admin.initializeApp()
+const db=admin.firestore()
+
+thirty_days_from_now =moment().add(3, 'days').unix()
+
+/**
+ * Carga api direcciones para sitemap de foro
+ * @function foro
+ */
+app.get('/foro',(req,res)=>{
+  db.collection('foro').get()
+  .then((foro)=>{
+    var reforo=[]
+      foro.forEach((fo)=>{
+        reforo.push(fo.id+"/"+fo.data().titulo.replace(/ /g,"%20","gi"))
+      })
+
+      var datos={
+        data:reforo
+      }
+
+      res.json(datos)
+  })
+
+})
+
+/**
+ * Carga api de blog
+ * @function blog
+ */
+ app.get('/blog',(req,res)=>{
+  db.collection('blog').get()
+  .then((blog)=>{
+    var reforo=[]
+      foro.forEach((fo)=>{
+        reforo.push(fo.id+"/"+fo.data().titulo.replace(/ /g,"%20","gi"))
+      })
+
+      var datos={
+        data:reforo
+      }
+
+      res.json(datos)
+  })
+
+})
+
+/**
+ * Registro de usuario Conekta /api/creacliente
+ * @function  AltaconektaUsuario
+ */
+app.post("/creacliente", (req, res) => {
+
+db.collection('ConfiguracionGeneral').get()
+.then((conf)=>{
+  var config=conf.docs[0].data()
+  conekta.api_key = config.pagos.conekta.modoprueba===true ? config.pagos.conekta.keys.privateKeyTest : config.pagos.conekta.keys.privateKeyProd //  &lt;-- Mock private key, please use YOUR personal private key
+  conekta.api_version = '2.0.0';
+  conekta.locale = 'es';
+  let datos={}
+      /// se crea el cliente en conekta
+       let customer=conekta.Customer.create({
+          'name':req.body.customer.name,
+          'email':req.body.customer.mail,
+          'phone':req.body.customer.phone,
+          'metadata':req.body.customer.metadata,
+          'payment_source':[{
+              'type':req.body.payment_sources.type,
+              'token_id':req.body.payment_sources.token_id
+          }]
+      },function(err,respuesta){
+          /// optioene el id_customer
+          datos={
+              id_customer:respuesta._id
+          }
+  
+          if(err){
+              datos={ error:err.details }
+              return
+          }
+          res.json(datos)
+      })
+      
+
+  })
+
+})
+
+
+
+
+/**
+ * Registro de compra /api/regcompra
+ * @function registroConektaCompra
+ */
+
+app.post('/regcompra',(req,res)=>{
+
+
+  const request=req.body
+
+  db.collection('ConfiguracionGeneral').get()
+.then((conf)=>{
+  var config=conf.docs[0].data()
+  console.log(request.customer)
+  conekta.api_key = config.pagos.conekta.modoprueba===true ? config.pagos.conekta.keys.privateKeyTest : config.pagos.conekta.keys.privateKeyProd //  &lt;-- Mock private key, please use YOUR personal private key
+    conekta.api_version = '2.0.0';
+    conekta.locale = 'es';
+    let datos={}
+    let mount=0
+    if(typeof request.payment.unit_price==='string'){
+      mount=parseInt(request.payment.unit_price)
+    }else{
+      mount=request.payment.unit_price
+    }
+    var order = conekta.Order.create({
+        "line_items": [{
+            "name": request.payment.name,
+            "unit_price": parseInt(mount)*100,
+            "quantity": request.payment.quantity
+        }],
+        "shipping_lines": [{
+            "amount": 0,
+            "carrier": "FEDEX"
+        }], 
+        "shipping_contact":{
+            "address": {
+              "street1": "Calle 123, int 2",
+              "postal_code": "06100",
+              "country": "MX"
+            }
+          },
+        "currency": request.payment.currency,
+        "customer_info": {
+          "name": request.customer.name,
+          "email":request.customer.email,
+          "phone": request.customer.phone
+        },
+      "metadata":{"external_reference":request.payment.external_reference},
+      "charges":[{
+        "payment_method": {
+          "type": "oxxo_cash",
+          "expires_at":thirty_days_from_now
+        }
+      }]
+    }, function(err, resp) {
+        if(err){
+          console.log(err);
+          return;
+        }
+        // Si la orden fue exitosa la consola debería imprimir lo siguiente respuesta:
+        datos={
+            ID:order.id,
+            order:resp.toObject().charges.data[0]
+            }
+            //// actualiza pago agregando la con la referencia
+            res.json(datos)
+          })
+
+        })
+  
+      })
+
+/**
+ * Registro de webook Conekta /api/hookoxxo
+ * @function WebHookConectaOxxo
+ */
+
+app.post("/hookoxxo",(req,res)=>{
+
+  const request=req.body.data.object
+  ///status
+   var status=request.payment_status
+    ////external_reference
+   var external_reference=request.metadata.external_reference
+ 
+if(status==='paid'){
+///// actualiza pago 
+db.collection('pagos').where('external_reference',"==",external_reference).get()
+.then((pay)=>{
+  console.log(pay.empty)
+    if(pay.empty===false){
+    var getpay={...pay.docs[0].data()}
+        getpay.status=status
+        getpay.reference=request.charges.data[0].payment_method.reference
+        getpay.updated_at=request.updated_at
+        getpay.paid_at=request.charges.data[0].paid_at
+
+
+  db.collection('pagos').doc(pay.docs[0].id).update(getpay)
+  console.log(getpay.iduser)
+  db.collection('usuarios').doc(getpay.iduser).get()
+  .then((user)=>{
+    if(user.exists){
+      var getuser={...user.data()}
+      getuser.idSuscripcion=external_reference
+      getuser.lvluser=2
+      db.collection('usuarios').doc(getpay.iduser).update(getuser)
+      res.json({res:'Registro de pago procesado y actualizado'})
+    }else{
+      res.json({res:'No hay usuario relacionado con este pago'})
+    }
+    })
+    }else{
+     res.json({res:'No se encontro el pago registrado'})
+  }
+  })
+
+///actualiza perfil
+
+      }else{
+        res.json({res:'No hay pagos que registrar'})
+      }
+ 
+  })
+
+
+
+
+const api = functions.https.onRequest(app)
+const ssrapp = functions.https.onRequest(async (req, res) => {
+  await nuxt.ready()
+  nuxt.render(req, res)
+})
+///// exporta solicitudes
+module.exports = {
+    api,
+    ssrapp
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.exports.methods.cerraralerta.html">cerraralerta</a></li><li><a href="module-default.methods.accesclick.html">accesclick</a></li><li><a href="module-default.methods.loadingevent.html">loadingevent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AltaconektaUsuario">AltaconektaUsuario</a></li><li><a href="global.html#blog">blog</a></li><li><a href="global.html#formasPagoMercadoPago">formasPagoMercadoPago</a></li><li><a href="global.html#formasPagoOxxo">formasPagoOxxo</a></li><li><a href="global.html#formasPagoStripe">formasPagoStripe</a></li><li><a href="global.html#foro">foro</a></li><li><a href="global.html#registroConektaCompra">registroConektaCompra</a></li><li><a href="global.html#registroPago">registroPago</a></li><li><a href="global.html#WebHookConectaOxxo">WebHookConectaOxxo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Apr 25 2021 07:17:55 GMT-0500 (GMT-05:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

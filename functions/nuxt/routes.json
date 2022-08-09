@@ -1,10 +1,17 @@
 [
   {
-    "name": "inspire",
-    "path": "/inspire",
-    "component": "/Users/jk/Documents/sitiosweb/NODE/planetapreescolar-ssr/pages/inspire.vue",
-    "chunkName": "pages/inspire",
-    "_name": "_75e75e88"
+    "name": "planeaciones",
+    "path": "/planeaciones",
+    "component": "/Users/jk/Documents/sitiosweb/NODE/planetapreescolar-ssr/pages/planeaciones.vue",
+    "chunkName": "pages/planeaciones",
+    "_name": "_28f2203a"
+  },
+  {
+    "name": "recomendaciones",
+    "path": "/recomendaciones",
+    "component": "/Users/jk/Documents/sitiosweb/NODE/planetapreescolar-ssr/pages/recomendaciones.vue",
+    "chunkName": "pages/recomendaciones",
+    "_name": "_40695eb5"
   },
   {
     "name": "index",

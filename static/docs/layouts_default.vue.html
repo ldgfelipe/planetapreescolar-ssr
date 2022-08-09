@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: layouts/default.vue</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: layouts/default.vue</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>&lt;template>
+  &lt;v-app>
+
+&lt;v-dialog fullscreen v-model="mantenimiento">
+  &lt;v-card>
+    &lt;v-card-title class="melon white--text">
+      Sitio en Mantenimiento o contrucción
+    &lt;/v-card-title>
+    &lt;v-card-text>
+      Para entrar ingrese la contraseña de desarrollo
+      &lt;v-text-field type="password" label="Ingrese la contraseña"  v-model="clavedesb">&lt;/v-text-field>
+      &lt;v-btn class="primary white--text" @click="entrarMantenimiento()">Entrar&lt;/v-btn>
+      {{menMant}}
+    &lt;/v-card-text>
+  &lt;/v-card> 
+  &lt;/v-dialog>
+ 
+         &lt;menulateral @abremenu="drawer=$event" /> 
+
+    &lt;v-navigation-drawer
+    v-model="drawer"
+    absolute
+    temporary
+    :class="menufix===true ? ' prysec menufixednavmovil ' : 'prysec' " 
+  >
+
+    &lt;v-list dense  class="prysec">
+      &lt;v-list-item
+        v-for="item in itemsmenu"
+        :key="item.title"
+        link
+        @click="accesclick(item.link)"
+        v-if="$validasesion($store,item) &amp;&amp; item.visible===true"
+          active-class="font-weight-black text-caption"
+      >
+        &lt;v-list-item-icon >
+         &lt;v-icon class="white--text space_elements">{{ item.icon }}&lt;/v-icon>
+        &lt;/v-list-item-icon>
+
+        &lt;v-list-item-content>
+         &lt;v-list-item-title class="white--text">{{ item.title }}&lt;/v-list-item-title>
+        &lt;/v-list-item-content>
+      &lt;/v-list-item>
+    &lt;/v-list>
+
+
+  &lt;/v-navigation-drawer>
+
+
+&lt;v-row>
+  
+&lt;v-col cols="12" md="2" v-show="vistaValida"   class="viewmobil prysec"  >   
+  &lt;!----Menu lateral------>
+  &lt;v-list dense class="prysec" :class="menufix===true ? ' prysec menufixed ' : '' " > 
+
+      &lt;v-list-item
+        v-for="item in itemsmenu"
+        :key="item.title"
+        link
+        @click="accesclick(item.link)"
+        v-if="$validasesion($store,item) &amp;&amp; item.visible===true"
+        active-class="font-weight-black text-caption"
+      >
+        &lt;v-list-item-icon >
+          &lt;v-icon class="white--text">{{ item.icon }}&lt;/v-icon>
+        &lt;/v-list-item-icon>
+
+        &lt;v-list-item-content class="white--text" >
+        {{ item.title }}
+        &lt;/v-list-item-content>
+      &lt;/v-list-item>
+    &lt;/v-list>
+&lt;/v-col>
+
+&lt;v-col  cols="12" :md="vistaValida ? 10 : 12" style="padding-top:0px!important; margin-top:0px!important;">
+
+
+      &lt;!----Espacio de carga de vistas------>
+      &lt;v-main class="ma-0 pa-0">
+        
+         &lt;nuxt />
+          &lt;boletin />
+      &lt;/v-main>
+&lt;/v-col>
+&lt;/v-row>     
+      &lt;!----Espacio de carga de vistas------>
+
+&lt;alertas />
+&lt;input type="text" value="¡Copyright Sereyd 2021 Copia no permitida!" id="copyright" style="width:1px; position:absolute; z-index:0px; color:#fff;">
+ 
+
+  &lt;v-footer
+
+      class="prysec white--text"
+      
+    >
+&lt;v-row>
+&lt;v-col cols="12" md="3" class="text-center" >
+    &lt;h4>Planeta Preescolar&lt;/h4>
+      &lt;p style="font-size:11px;">
+      Copyright  &amp;copy; {{ new Date().getFullYear() }} Grupo Sereyd&lt;br />
+      todos los derechos reservados
+      &lt;/p>
+   &lt;/v-col>
+  &lt;v-col cols="12" md="3" class="text-center">
+     &lt;h4>Suscríbete&lt;/h4>
+      &lt;p style="font-size:11px;">
+        &lt;ul  style="list-style:none;">
+          &lt;li>Planes de pago&lt;/li>
+          &lt;li>Precios expresados en Pesos Mexicanos &lt;/li>
+          &lt;/ul>
+      &lt;/p>
+  &lt;/v-col>
+  &lt;v-col cols="12" md="3" class="text-center">
+        &lt;h4>Contacto&lt;/h4>
+      &lt;p style="font-size:11px;">
+        &lt;ul style="list-style:none;">
+          &lt;li>soporte@planetapreescolar.com&lt;/li>
+          &lt;li>&lt;router-link class="white--text" to="/aviso-de-privacidad">Aviso de privacidad&lt;/router-link>&lt;/li>
+          &lt;li>&lt;router-link class="white--text" to="/terminos-y-condiciones">Términos y condiciones&lt;/router-link>&lt;/li>
+          &lt;li>&lt;router-link class="white--text" to="/preguntas-frecuentes">Preguntas frecuentes&lt;/router-link>&lt;/li>
+          &lt;/ul>
+      &lt;/p>
+  &lt;/v-col>
+  &lt;v-col cols="12" md="3" class="text-center">
+
+      &lt;h4>Siguenos&lt;/h4>
+      &lt;p style="font-size:11px;">
+        Redes sociales        
+      &lt;/p>
+
+
+
+  &lt;/v-col>
+
+&lt;v-col cols="12" md="12" class="text-center">
+  &lt;span> Copyright  &amp;copy; {{ new Date().getFullYear() }}  Koddy-Go&lt;/span>
+&lt;/v-col>
+  &lt;/v-row>
+
+    
+    
+    
+    &lt;/v-footer> 
+ 
+ 
+ 
+&lt;/v-app>
+&lt;/template>
+&lt;style scoped>
+/** Vista Movil */ 
+.viewmobil{
+  display:inline-block;
+}
+.v-list-item--link{
+  font-size:13px;
+}
+.v-list-item--link:before {
+  background:none; 
+}
+
+
+.menufixed{
+  position:fixed;  
+  top:90px;
+  z-index:1; 
+}
+
+
+.menufixednavmovil{
+  position:fixed;  
+  z-index:10;
+}
+.menunormal{
+  width:100%;
+  max-width:100%;
+}
+
+@media (max-width:959px){
+  .viewmobil{
+      display: none;
+  }
+
+}
+
+@media  (min-width:1020px) and (max-width:1439px){
+  .menufixed{
+    width:100%; 
+    max-width:160px;
+    top:80px;
+  }
+
+}
+
+
+  @media  (min-width:1440px) and (max-width:2559px){
+  .menufixed{
+    width:100%; 
+    max-width:220px;
+    top:80px;
+  }
+
+}
+
+
+  @media  (min-width:2560px) and (max-width:3839px) {
+  .menufixed{
+    width:100%; 
+    max-width:400px;
+    top:80px;
+  }
+
+}
+
+ @media  (min-width:3840px)  {
+  .menufixed{
+    width:100%; 
+    max-width:450px;
+    top:80px;
+  }
+
+}
+&lt;/style>
+&lt;script>
+/**
+ * layout de importación
+ * 
+ */
+  import menulateral from '~/components/menulateral/menulateral.vue'
+  import { mapState, mapMutations, mapActions } from 'vuex'
+  import alertas from "~/components/alertas/alertas.vue"
+  import boletin from "~/components/boletin/boletin.vue"
+  import nuxtview from "~/components/nuxtview/nuxtview.vue"
+
+    export default {
+
+      data () {
+        return {
+          drawer: false,
+          clavedesb:"",
+          menMant:"",
+          validsesion:true,
+            items: [
+              { title: 'Home', icon: 'mdi-dashboard' },
+              { title: 'About', icon: 'mdi-question_answer' },
+              { title: 'Register', icon: 'mdi-question_answer' },
+            ],
+        }
+      },
+   
+      created(){
+
+
+         
+      },
+      mounted(){
+         if(this.configAll.mantenimiento===true){
+           console.log('carga ventana de manteniminento')
+            this.cambioMantenimiento(true)
+          }
+      },
+      computed:{
+
+  ...mapState([
+      'dialog',
+      'mantenimiento', 
+      'test',
+      'itemsmenu',
+      'vistaValida',
+      'mensajealerta',
+      'staleras',
+      'tpalert',
+      'menufix',
+      'configAll'
+      ])
+      
+      },
+      methods:{
+        ...mapMutations(['abrirRegistro','changeScreenPrint','cambioMantenimiento','cargaConfiGral','cambiaLoading']),
+        ...mapActions(['scrollmenu','cargaConfiguracionGeneral']),
+       workerResponseHandler: function (event) {
+        
+      },
+      opsetings(){
+        this.opset===false ? this.opset=true : this.opset=false
+      },
+              /**
+/**
+ * Methodo para que se ejecuta al daro click al link del menu
+ * @constructor
+ * @param {string} p - Enlace de destino  
+ * 
+ */
+        accesclick(p){
+        if(this.$router.history.current.fullPath!==p){
+          this.$router.push(p)
+          }
+        },
+        /**
+ * Evento de prueba de ruter
+ * @constructor
+ */
+        loadingevent(e){
+            console.log(this.$router)
+       },
+       entrarMantenimiento(){
+          if(this.clavedesb===this.configAll.passmantent){
+            this.cambioMantenimiento(false)
+          }else{
+            this.menMant="La contraseña no es correcta"
+            setTimeout(()=>{
+              this.menMant=""
+            },3000)
+          }
+        }
+      },
+      components:{
+        menulateral,
+        alertas,
+        boletin,
+        nuxtview
+      },
+      
+    }
+&lt;/script></code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.exports.methods.cerraralerta.html">cerraralerta</a></li><li><a href="module-default.methods.accesclick.html">accesclick</a></li><li><a href="module-default.methods.loadingevent.html">loadingevent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AltaconektaUsuario">AltaconektaUsuario</a></li><li><a href="global.html#blog">blog</a></li><li><a href="global.html#formasPagoMercadoPago">formasPagoMercadoPago</a></li><li><a href="global.html#formasPagoOxxo">formasPagoOxxo</a></li><li><a href="global.html#formasPagoStripe">formasPagoStripe</a></li><li><a href="global.html#foro">foro</a></li><li><a href="global.html#registroConektaCompra">registroConektaCompra</a></li><li><a href="global.html#registroPago">registroPago</a></li><li><a href="global.html#WebHookConectaOxxo">WebHookConectaOxxo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Apr 25 2021 07:17:55 GMT-0500 (GMT-05:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

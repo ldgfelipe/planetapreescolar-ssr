@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/checkout/checkout_script.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/checkout/checkout_script.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { mapState, mapMutations, mapActions } from 'vuex'
+import Spinner from '~/components/spinner.vue'
+
+export default {
+  data () {
+    return {
+      loaderpage:false,
+      //DATOS PRA PANTLLA DE PAGO EXITOSO
+      tipoSuscripcion: "",
+      precioSus:"",
+      importe:"",
+
+      //CLAVES DE PAQUETES
+      apikeystripe:"",
+      // mensualPriceId: "price_1IISmVANenJgOhZEqbbhOoWO",
+      // trimestralPriceId: "price_1IISmVANenJgOhZEQFCe6E4l",
+      // semestralPriceId: "price_1IISmVANenJgOhZEyjxBqKE4",
+      // anualPriceId: "price_1IISmUANenJgOhZEM9nfjELS",
+
+
+
+      urlsusMP: "",
+
+      //CLAVES PARA MERCADO PAGO GMAIL
+      // apiKey: "TEST-20920d57-4e20-4f4c-8ae8-165479c50481",
+      // accessToken:"TEST-8920658246221073-122116-fae55fc90deca1afa2cffd0207537488-392358182",
+
+      //CLAVES PARA MERCADO PAGO GMAIL
+      apiKey: "TEST-0243b12a-9903-4ea0-9837-a34e8fb2a723",
+      // accessToken:"TEST-5708698566465206-020216-1cbaade80cc97fab76047cc3d8b3321b-706431956",
+      
+      //DATA DE MERCAPAGO
+      datosMP:{
+        nombre:"Jose",
+        apellido:"Ruiz Diaz",
+        correo:"josed555@gmail.com",
+      },
+      dialogMoneda: false,
+
+      dialogFormasPago: false,
+      // tipoSuscripcion: "",
+      urlMP: "",
+
+      mediosPago:["oxxo"],
+      medioSeleccionado:null,
+      validMP:true,
+
+      spinner: false,
+      completado: false,
+      linkMP: "",
+
+      //PeriodoPrueba
+      esPromo: false,
+
+      correoReglas: [    
+        v => !!v || 'Correo es requerido',
+        v => /^[-\w.%+]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$/i.test(v) || 'Correo no válido',
+      ],
+
+      moneda:"mxn",
+      idPais:"mxn",
+      idMoneda:"mexico",
+      dialogMoneda: false,
+      mestitle:"$ 199 mxn",
+      trimestretitle:"$ 569 mxn",
+      semestretitle:"$ 1,069 mxn",
+      anualtitle:"$ 1,990 mxn",
+      paises: [],
+      paisselect:{id:"mexico", text:"Peso mexicano", value:"mxn"},
+      banderaM:"mexico.png",
+      tipoSuscripcionStripe:"",
+
+        
+    }
+  },
+  computed:{
+    ...mapState(['datosUsuario','dominio','configAll','descargasConf']),
+    // banderaMM(){
+    //   const bnd = "../../Banderas/"+this.paisselect.id+".png";
+    //   console.log(bnd)
+    //   return bnd;
+    // }
+    
+  },
+  components:{Spinner},
+  async created(){
+    this.apikeystripe=this.configAll.pagos.stripe.modoprueba === true ? this.configAll.pagos.stripe.apikeytest : this.configAll.pagos.stripe.apikeyprod
+    const {pruebagratuita} = this.configAll.pagos.stripe;
+    const pguser = this.datosUsuario.pruebagratuita;
+
+    
+    this.esPromo = (!pguser &amp;&amp; pruebagratuita > 0) ? true : false;
+      const {idpagos} = this.configAll.pagos.stripe
+
+      
+      const obj = {...this.configAll.pagos.stripe.idpagos}
+
+        let cont = 1;
+        let text = "";
+      for (var key in obj) {
+        text =  cont +".- "+obj[key].pais+" | "+ obj[key].simbolo; 
+        this.paises.push({
+          id: key,
+          text,
+          value: obj[key].value,
+        });
+        cont++;
+      };
+      this.paisselect = idpagos["mexico"];
+
+  },
+  methods: {
+    ...mapMutations(['guardaDatosUsuarioStore','guardarStripeObj','regpayment']),
+    //PAGOS CON MERCADO LIBRE
+    async go(){
+      // try {
+      //   await fetch("http://localhost:4242/crear-precios", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       'Access-Control-Allow-Origin': '*',
+      //     },
+      //     body: JSON.stringify(this.idpagosStripe),
+      //   })
+        
+      //   console.log("listo")
+      //   alert("listo")
+      // } catch (error) {
+      //   console.log(error)
+      // }
+    },
+
+    /**
+     * Methodo en checkout para solicitar pago con oxxo
+     * @function formasPagoOxxo 
+     * @param {string} mensualidad mensual,trimestral, semestral, anual
+     */
+    formasPagoOxxo(tipoS){
+      const external_reference = this.$codegenerate().toString();
+      const {idpagos} = this.configAll.pagos.mercadopago
+      let arraypagos= idpagos.find(pago=>pago.tipo === tipoS);
+      var orderData = {
+        quantity: 1,
+        name:"OxxoPay Pago "+tipoS,
+        unit_price: arraypagos.monto,
+        external_reference,
+        currency: "MXN",
+        medio:"conekta",
+        frecuencia:tipoS
+      };
+      this.regpayment(orderData)
+      this.registroPago(orderData)
+      this.$router.push('/pagoefectivo')
+
+    },
+
+
+
+
+    generarCobro(){
+      window.Mercadopago.setPublishableKey(this.apiKey);
+      // console.log(this.datosMP);
+    },
+
+    validarMP(){
+      const vd = this.$refs.formMP.validate();
+      this.validMP = vd;
+      if(this.validMP)
+      {
+        // this.tipoMembresia = tipoM;
+
+        this.crearOrdenMP();
+      }
+    
+    },
+
+  /**
+     * Methodo en checkout para solicitar pago con Mercado Pago
+     * @function formasPagoMercadoPago
+     * @param {string} mensualidad mensual,trimestral, semestral, anual
+     */
+  formasPago(tipoS){
+      this.loaderpage=true
+      // this.tipoSuscripcion= tipoS;
+      const external_reference = this.$codegenerate().toString();
+      this.urlMP=this.configAll.pagos.mercadopago.modoprueba === true ? this.configAll.pagos.mercadopago.apiUrltest : this.configAll.pagos.mercadopago.apiUrlprod
+      // return external_reference;
+
+      const description = tipoS === "trimestral" ? "Planeta Preescolar: Trimestral" : 
+        tipoS === "semestral" ? "Planeta Preescolar: Semestral" :
+        tipoS === "anual" ? "Planeta Preescolar: Anual" : "Planeta Preescolar: Mensual";
+
+      
+      const {idpagos} = this.configAll.pagos.mercadopago
+
+      let arraypagos= idpagos.find(pago=>pago.tipo === tipoS);
+      var orderData = {
+        quantity: 1,
+        description,
+        price: arraypagos.monto,
+        dominio: process.env.baseUrl,
+        external_reference,
+        currency_id: "MXN",
+
+      };
+      
+      var urlendpoint=this.configAll.pagos.mercadopago.modoprueba === true ? this.configAll.pagos.mercadopago.apiUrltest : this.configAll.pagos.mercadopago.apiUrlprod
+
+      fetch(urlendpoint+"/create_preference", {
+      // fetch("/create_preference", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  'Access-Control-Allow-Origin': '*',
+              },
+              body: JSON.stringify(orderData),
+      })
+      .then((response) => {
+          return response.json();
+      })
+      .then((preference) => {
+    
+          
+         this.urlMP = preference.pre.init_point;
+          localStorage.setItem("payment_intent", "" );
+          localStorage.setItem("user", JSON.stringify(this.datosUsuario) );
+          orderData.medio="MercadoPago"
+              this.registroPago(orderData)  
+           window.location.href=this.urlMP
+        
+      })
+      .catch((error) => {
+        console.log(error)
+      });
+
+    },
+
+    /** 
+     * Registro en base pagos
+     * @function registroPago
+     * @param {Objeto} orderData Recibe el objeto con datos de pago de stripe, mercadopago o conekta
+     * */    
+
+
+ registroPago(orderData){
+
+  orderData.iduser=this.datosUsuario.id
+  orderData.status= "pending"
+  orderData.date_created=new Date()
+  orderData.collector_id=0
+  orderData.id=0
+  orderData.operation_type=""
+  orderData.payment_method_id=""
+  orderData.status_detail=""
+  orderData.payer={}
+   this.$fireStore.collection('pagos').add(orderData)
+  //  alert("up nueva orden")
+ },
+
+    
+ /**
+     * Methodo en checkout para solicitar pago con Mercado Pago
+     * @function formasPagoStripe
+     *
+     */
+ openDialogMoneda(tipoSuscripcion){
+
+   if(this.configAll.pagos.stripe.modoprueba)
+   {
+    this.precioSus="";
+     this.tipoSuscripcion = tipoSuscripcion;
+     this.dialogMoneda = true;
+   }
+   else
+    this.crearSesionSuscripcion(tipoSuscripcion)
+   
+
+ },
+  
+  crearSesionSuscripcion(tipoSuscripcion){
+
+      if(this.idPais !== "")
+      {
+        
+
+        this.loaderpage=true
+        this.spinner = true;
+        const external_reference = this.$codegenerate().toString();
+
+        let arraypagos=[];
+        const {idpagos} = this.configAll.pagos.stripe
+        let objPago = {};
+
+        
+          const paisNow = this.paises.find(pais => pais.value === this.idPais)
+          this.paisselect = idpagos[paisNow.id];
+          objPago = idpagos[paisNow.id];
+          
+          arraypagos= objPago.precios.find(pago=>pago.tipo === tipoSuscripcion);
+        
+
+        this.importe  = arraypagos.monto
+
+        const locale = "es"
+        
+        //SE VERIFICA QUE TIPO DE MEMBRESIA SE DESEA PAGAR
+        const priceId = this.configAll.pagos.stripe.modoprueba===true ? arraypagos.idtest : arraypagos.idprod
+
+        var urlendpoint=this.configAll.pagos.stripe.modoprueba === true ? this.configAll.pagos.stripe.apiUrltest : this.configAll.pagos.stripe.apiUrlprod
+        
+        const trial_period_days = this.configAll.pagos.stripe.pruebagratuita;
+        
+        let stripe = Stripe(this.apikeystripe, locale);
+
+        var orderData={
+          priceId,
+          dominio: process.env.baseUrl,
+          external_reference,
+          trial_period_days,
+        }
+       
+        fetch(urlendpoint+"/create-checkout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify(orderData)
+        })
+        .then((result) => {
+          if (!result.ok) {
+            return result.json().then((json) => {
+              if (json.error &amp;&amp; json.error.message) {
+                throw new Error(result.url + ' ' + result.status + ' ' + json.error.message);
+              }
+            });
+          }
+          return result.json();
+        })
+
+        .then((data) => {
+          //DATOS PARA PANTALLA DE PAGO EXITOSO
+          data.tipoSuscripcion = tipoSuscripcion;
+          data.importe = this.importe;
+          orderData.tipoSuscripcion=tipoSuscripcion
+          orderData.importe=this.importe
+          orderData.external_reference=external_reference 
+          
+          //DATA EN STORAGE PARA COMPROBARLA AL HACERASE EL PAGO EXITOSO
+          localStorage.setItem("payment_intent", JSON.stringify(data) );
+          localStorage.setItem("user", JSON.stringify(this.datosUsuario) );
+
+          orderData.medio="Stripe"
+          this.registroPago(orderData)
+
+          //SE EJECUTA LA VENTANA DE STRIPE PARA INSERTAR DATOS DE LA TARJETA
+          stripe
+            .redirectToCheckout({
+              sessionId: data.sessionId
+            })
+            .then( (result) => {
+
+              if (result.error) {
+               
+                console.log(result.error)
+              }else{
+                localStorage.setItem("result_beta", JSON.stringify(result) );
+
+              }
+            });
+        });
+      }
+      else
+      {
+        alert("Seleccione el tipo de moneda")
+        this.dialogMoneda =true;
+      }
+
+    },
+
+
+  },
+  watch:{
+    idPais(){
+      const {idpagos} = this.configAll.pagos.stripe
+
+     
+      const paisNow = this.paises.find(pais => pais.value === this.idPais)
+      
+      this.paisselect = idpagos[paisNow.id];
+
+     
+      let val = "";
+      this.paisselect.precios.forEach(pago=>{
+        
+        if(pago.tipo === this.tipoSuscripcion)
+          this.precioSus = this.paisselect.simbolo+pago.monto
+        
+        val = (this.paisselect.value === "usd2" ||  this.paisselect.value === "usd3" || this.paisselect.value === "usd4" || this.paisselect.value === "usd5" ||  this.paisselect.value === "usd6") ? "usd" : this.paisselect.value
+        
+        if(pago.tipo === "mensual")
+          this.mestitle = this.paisselect.simbolo+" "+pago.monto+" "+val
+        else if(pago.tipo === "trimestral")
+          this.trimestretitle = this.paisselect.simbolo+" "+pago.monto+" "+val
+        else  if(pago.tipo === "semestral")
+          this.semestretitle = this.paisselect.simbolo+" "+pago.monto+" "+val
+        else if(pago.tipo === "anual")
+          this.anualtitle = this.paisselect.simbolo+" "+pago.monto+" "+val
+      });
+      this.banderaM = paisNow.id+".png";
+
+    }
+  }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module.exports.methods.cerraralerta.html">cerraralerta</a></li><li><a href="module-default.methods.accesclick.html">accesclick</a></li><li><a href="module-default.methods.loadingevent.html">loadingevent</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AltaconektaUsuario">AltaconektaUsuario</a></li><li><a href="global.html#blog">blog</a></li><li><a href="global.html#formasPagoMercadoPago">formasPagoMercadoPago</a></li><li><a href="global.html#formasPagoOxxo">formasPagoOxxo</a></li><li><a href="global.html#formasPagoStripe">formasPagoStripe</a></li><li><a href="global.html#foro">foro</a></li><li><a href="global.html#registroConektaCompra">registroConektaCompra</a></li><li><a href="global.html#registroPago">registroPago</a></li><li><a href="global.html#WebHookConectaOxxo">WebHookConectaOxxo</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Apr 25 2021 07:17:55 GMT-0500 (GMT-05:00)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
