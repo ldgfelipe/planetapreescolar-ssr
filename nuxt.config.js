@@ -53,13 +53,22 @@ module.exports={
           measurementId: "G-E7Y6JTQG51"
         },
         services: {
-          auth: true // Just as example. Can be any other service.
+          auth: {
+            persistence: 'local',
+            initialize: {
+              onAuthStateChangedMutation: 'ON_AUTH_STATE_CHANGED_MUTATION',
+              onAuthStateChangedAction: 'onAuthStateChangedAction',
+              subscribeManually: false
+            },
+            ssr: true
+          },
+          firestore:true
         }
       }
     ]
   ],
   env: {
-    baseUrl: process.env.BASE_URL || 'https://educadorafirebase.web.app'
+    baseUrl: process.env.BASE_URL || 'http://localhost:3000'
   },
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {

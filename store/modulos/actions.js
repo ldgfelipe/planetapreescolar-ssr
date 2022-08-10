@@ -1,9 +1,12 @@
 export const actions = {
   nuxtServerInit ({ commit }, { req }) {
-  var configInit={
-      url:process.env.baseUrl
-  }
-   
-  commit('cargaIniserver',configInit)
-       },
+    console.log('nuxtServerInit')
+      var configInit={
+
+          }
+          commit('cargaIniserver',configInit)
+    },
+  onAuthStateChangedAction(ctx){
+          console.log('onAuthStateChangedAction')
+    }
   }

@@ -1,6 +1,9 @@
 export const mutations = {
     cargaIniserver(state,data) {
-        state.url=data.url
+
+     },
+     ON_AUTH_STATE_CHANGED_MUTATION(state){
+      console.log('ON_AUTH_STATE_CHANGED_MUTATION')
      }
+
    }
- 
